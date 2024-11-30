@@ -11,7 +11,7 @@ def build_layout(files):
                     sg.Slider((0,100), orientation='vertical', expand_y=True, default_value=50, enable_events=True, disable_number_display=True, key=f'Pan::master'), sg.Button('Center', key='Ctr::master', button_color='green')],
                     [sg.Text('Vol'), sg.Text('      Pan')],
                     [sg.HorizontalSeparator()],
-                    [sg.Button('Mute All X', key='Mute::master'), sg.Button('Pause All ||', key=f'Psr::master', disabled=True), sg.Button('Stop All []', key=f'Stop::master')]
+                    [sg.Button('Mute All X', key='Mute::master'), sg.Button('Pause All ||', key=f'Psr::master', disabled=True)]
                      ]
     
     dyn_layout = []
@@ -44,7 +44,39 @@ def build_layout(files):
     
     return layout, window
 
+class DanAudio:
+    def __init__(self):
+        # set up members here
+        foo=1
+        
+    def Pan(self, file, val):
+        print(f'PAN: {file} value == {val}\r\n')
+
+    def Vol(self, file, val):
+        print(f'VOL: {file} value = {val}\r\n')       
+
+    def Mute(self,file):
+        # needs to toggle
+        print(f'Mute: {file}')
+    
+    def Play(self,file):
+        print(f'Play: {file}')
+    
+    def Stop(self,file):    
+        print(f'Stop: {file}')
+    
+    def Pause(self,file):
+        # should also toggle
+        print(f'Pause/Resume: {file}')
+    
+    def Loop(self,file):
+        print(f'Loop {file}')
+    
+    def Clear_loop(self,file):
+        print(f'OneShot: {file}')
+    
 def run_gui(layout, window):
+    audio=DanAudio()
     
     while True:
         event, values = window.read()
@@ -54,52 +86,55 @@ def run_gui(layout, window):
             #print(f'event == {event}\r\n')            
             if 'Pan::' in event:
                 file = event[5:]
-                val = values[event]
-                print(f'PAN: {file} value == {values[event]}\r\n')
+                val = values[event]                
                 if val == 50:
                     window[f'Ctr::{file}'].update(button_color='green')
                 else:
                     window[f'Ctr::{file}'].update(button_color=sg.theme_button_color())
                     #do something to indicate balanced
                     #like disable the corresponding center button / change color
+                audio.Pan(file, val)
             if 'Ctr::' in event:
                 # center the corresponding pan slider   
                 file = event[5:]
                 print(f'Center: {file}')
                 window[f'Pan::{file}'].update(value=50)
                 window[event].update(button_color='green')
+                audio.Pan(file, 50)
             if 'Vol::' in event:
                 file = event[5:]
-                print(f'VOL: {file} value = {values[event]}\r\n')       
+                val = values[event]
+                audio.Vol(file, val)                
             if 'Mute::' in event:
-                file = event[6:]
-                print(f'Mute: {file}')
+                file = event[6:]                
                 btncolor = window[event].ButtonColor
                 window[event].update(button_color=btncolor[::-1])
+                audio.Mute(file)
             if 'Play::' in event:
-                file = event[6:]
-                print(f'Play: {file}')
+                file = event[6:]                
                 btncolor = window[event].ButtonColor
                 window[event].update(button_color=btncolor[::-1], disabled=True)
                 window[f'Psr::{file}'].update(disabled=False)
                 window['Psr::master'].update(disabled=False)
+                audio.Play(file)
             if 'Stop::' in event:
-                file = event[6:]
-                print(f'Stop: {file}')
-                if file != 'master':
-                    window[f'Play::{file}'].update(button_color=sg.theme_button_color(), disabled=False)
+                file = event[6:]                
+                #if file != 'master':
+                window[f'Play::{file}'].update(button_color=sg.theme_button_color(), disabled=False)
                 window[f'Psr::{file}'].update(button_color=sg.theme_button_color(), disabled=True)
+                audio.Stop(file)
             if 'Psr::' in event:
-                file = event[5:]
-                print(f'Pause/Resume: {file}')
+                file = event[5:]    
                 btncolor = window[event].ButtonColor
                 window[event].update(button_color=btncolor[::-1])
+                audio.Pause(file)
                 #print(btncolor)
             if 'Loop::' in event:
                 file = event[6:]
-                print(f'Loop {file}')
+                audio.Loop(file)
             if 'Ones::' in event:
-                print(f'OneShot: {file}')
+                file = event[6:]
+                audio.Clear_loop(file)
             
     
 def main(argv):
