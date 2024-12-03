@@ -9,16 +9,13 @@ import sys, glob
 def build_layout(files):
     master_controls = [
                     [sg.Push(), sg.Text('11'), sg.Push()],
-                    [sg.Text('Vol:'), sg.Slider((0,100), orientation='vertical', expand_y=True, default_value=75, enable_events=True, disable_number_display=True, key=f'Vol::master')],
-                     #sg.Text('    '),
-                    #sg.Slider((-100,100), orientation='vertical', expand_y=True, default_value=0, enable_events=True, disable_number_display=True, key=f'Pan::master'), sg.Button('Center', key='Ctr::master', button_color='green')],
-                    [sg.Push(), sg.Text('0'), sg.Push()], #, sg.Text('      Pan')],
+                    [sg.Text('Vol:'), sg.Slider((0,100), orientation='vertical', expand_y=True, default_value=75,
+                                               enable_events=True, disable_number_display=True, key=f'Vol::master')],
+                    [sg.Push(), sg.Text('0'), sg.Push()],
                     [sg.HorizontalSeparator(key='sep1')],
                     [sg.Push(), sg.Button('Mute All X', key='Mute::master'), sg.Push()], 
                     [sg.Push(), sg.Button('Pause All ||', key=f'Psr::master', disabled=True), sg.Push()],
                     [sg.Push(), sg.Button('Stop All []', key=f'Stop::master'), sg.Push()]
-
-                       
                      ]
     
     dyn_layout = []    
@@ -27,16 +24,19 @@ def build_layout(files):
     for file in files:
         dyn_layout.append([sg.Text(f'File: {file}')])
         dyn_layout.append([sg.Push(), 
-                           sg.Button("Play |>", key=f'Play::{file}'), sg.Button("Pause ||", key=f'Psr::{file}', disabled=True), 
-                           sg.Button("Stop []", key=f'Stop::{file}'), 
-                           sg.Radio('One shot',group_id=rgid, default=True, enable_events=True, key=f'Ones::{file}'),
-                           sg.Radio('Loop', group_id=rgid, key=f'Loop::{file}', enable_events=True),
+                          sg.Button("Play |>", key=f'Play::{file}'),
+                          sg.Button("Pause ||", key=f'Psr::{file}', disabled=True),
+                          sg.Button("Stop []", key=f'Stop::{file}'),
+                          sg.Radio('One shot',group_id=rgid, default=True, enable_events=True, key=f'Ones::{file}'),
+                          sg.Radio('Loop', group_id=rgid, key=f'Loop::{file}', enable_events=True),
                           sg.Push()])
-        dyn_layout.append([sg.Button('Mute X', key=f'Mute::{file}'), sg.Text('Volume: 0'), 
-                      sg.Slider((0,100), orientation='horizontal', enable_events=True, default_value=75, disable_number_display=True,               key=f'Vol::{file}'),
-                      sg.Text('11    |   Pan:   L'), 
-                      sg.Slider((-100,100), orientation='horizontal', default_value=0, disable_number_display=True, enable_events=True,               key=f'Pan::{file}'),
-                      sg.Text('R'), sg.Button('Center', key=f'Ctr::{file}', button_color='green')])
+        dyn_layout.append([sg.Button('Mute X', key=f'Mute::{file}'), sg.Text('Volume: 0'),
+                          sg.Slider((0,100), orientation='horizontal', enable_events=True, default_value=75,
+                                    disable_number_display=True, key=f'Vol::{file}'),
+                          sg.Text('11    |   Pan:   L'),
+                          sg.Slider((-100,100), orientation='horizontal', default_value=0,
+                                    disable_number_display=True, enable_events=True, key=f'Pan::{file}'),
+                          sg.Text('R'), sg.Button('Center', key=f'Ctr::{file}', button_color='green')])
         dyn_layout.append([sg.HorizontalSeparator()])
         rgid += 1
     
@@ -71,16 +71,12 @@ class DanAudio():
         self.master_pause = False
         
     def calc_pan(self, vol_l, vol_r, pan):
-        #print(f'Pan: vol_l={vol_l}, vol_r={vol_r}, pan={pan}')
         if pan == 0:
-            #print('Pan: no-op')
             return vol_l, vol_r
         pan /= 100
         if pan > 0:
-         #   print(f'new pan={pan}, vol_l={vol_l}, vol_r={vol_r*pan}')
             return vol_l - (vol_l * pan), vol_r
         if pan < 0:
-          #  print(f'new pan={pan}, vol_l={vol_l * -pan}, vol_r={vol_r}')
             return vol_l, vol_r - (vol_r * -pan)
         
     def build_audio_map(self,audio_files):
@@ -92,7 +88,6 @@ class DanAudio():
         return mymap
         
     def Pan(self, file, val):
-        #print(f'PAN: {file} value == {val}\r\n')
         aud = self.m_audio_map[file]
         aud.pan = val
         if aud.muted == False:
@@ -100,7 +95,6 @@ class DanAudio():
             aud.channel.set_volume(vol_l, vol_r)
 
     def Vol(self, file, val):
-        #print(f'VOL: {file} value = {val}\r\n')
         if file == 'master':
             if self.master_mute == False:
                 self.master_vol = val
@@ -114,8 +108,6 @@ class DanAudio():
                 aud.channel.set_volume(vol_l, vol_r)
 
     def Mute(self, file):
-        # needs to toggle
-        #print(f'Mute: {file}')
         if file == 'master':
             self.master_mute = not self.master_mute
             for key, aud in self.m_audio_map.items():
@@ -134,7 +126,6 @@ class DanAudio():
         
 
     def Play(self, file):
-        #print(f'Play: {file}')
         if self.master_pause == False:
             aud = self.m_audio_map[file]
             nloops=0
@@ -147,14 +138,11 @@ class DanAudio():
             aud.playing = True
 
     def Stop(self, file):    
-        #print(f'Stop: {file}')
         aud = self.m_audio_map[file]
         aud.playing = False
         aud.channel.stop()
 
     def Pause(self, file, paused=None):
-        # should also toggle
-        #print(f'Pause/Resume: {file}')       
         aud = self.m_audio_map[file]
         if paused != None:
             aud.paused = paused
@@ -167,15 +155,12 @@ class DanAudio():
             aud.channel.unpause()                
 
     def Loop(self, file):
-        #print(f'Loop {file}')
         aud = self.m_audio_map[file]
         aud.looping = True
 
     def Clear_loop(self, file):
-        #print(f'OneShot: {file}')
         aud = self.m_audio_map[file]
         aud.looping = False
-
 
 
 def run_gui(layout, window, audio):
@@ -196,7 +181,6 @@ def run_gui(layout, window, audio):
             if 'Ctr::' in event:
                 # center the corresponding pan slider   
                 file = event[5:]
-         #      print(f'Center: {file}')
                 window[f'Pan::{file}'].update(value=0)
                 window[event].update(button_color='green')
                 audio.Pan(file, 0)
@@ -270,9 +254,8 @@ def toggle_button_color(item, rev=None):
     
 def main(argv):
     folder = sg.popup_get_folder('Choose the folder containing your sounds')
-    # folder = 'C:/Users/Bill/projects/DanMix/testsounds'
     if folder != None:
-        #sg.popup(f'you chose {folder}')
+        # not sure what all pygame supports, but it should at least work with these
         extensions = [ "*.mp3", "*.wav", "*.flac", "*.m4a" ]
         files = []
         for ext in extensions:
@@ -282,8 +265,6 @@ def main(argv):
         run_gui(layout, window, audio)
     else:
         sg.popup(f'no folder chosen: {folder}')
-    
-    
 
 if __name__ == '__main__':
     main(sys.argv[1:])
