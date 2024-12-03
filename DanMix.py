@@ -7,16 +7,20 @@ with contextlib.redirect_stdout(None):
 import sys, glob
 
 def build_layout(files):
+    menu_def = [
+                ['File', ['Restart', 'Exit']],
+                ['Help', ['About']]
+    ]
     master_controls = [
-                    [sg.Push(), sg.Text('11'), sg.Push()],
-                    [sg.Text('Vol:'), sg.Slider((0,100), orientation='vertical', expand_y=True, default_value=75,
-                                               enable_events=True, disable_number_display=True, key=f'Vol::master')],
-                    [sg.Push(), sg.Text('0'), sg.Push()],
-                    [sg.HorizontalSeparator(key='sep1')],
-                    [sg.Push(), sg.Button('Mute All X', key='Mute::master'), sg.Push()], 
-                    [sg.Push(), sg.Button('Pause All ||', key=f'Psr::master', disabled=True), sg.Push()],
-                    [sg.Push(), sg.Button('Stop All []', key=f'Stop::master'), sg.Push()]
-                     ]
+        [sg.Push(), sg.Text('11'), sg.Push()],
+        [sg.Text('Vol:'), sg.Slider((0,100), orientation='vertical', expand_y=True, default_value=75,
+                                  enable_events=True, disable_number_display=True, key=f'Vol::master')],
+        [sg.Push(), sg.Text('0'), sg.Push()],
+        [sg.HorizontalSeparator(key='sep1')],
+        [sg.Push(), sg.Button('Mute All X', key='Mute::master'), sg.Push()], 
+        [sg.Push(), sg.Button('Pause All ||', key=f'Psr::master', disabled=True), sg.Push()],
+        [sg.Push(), sg.Button('Stop All []', key=f'Stop::master'), sg.Push()]
+    ]
     
     dyn_layout = []    
     
@@ -40,7 +44,10 @@ def build_layout(files):
         dyn_layout.append([sg.HorizontalSeparator()])
         rgid += 1
     
-    layout = [[sg.Frame('Master Controls',  master_controls, expand_y=True ), sg.Frame('Sounds', dyn_layout )]] 
+    layout = [
+        [sg.Menu(menu_def)],
+        [sg.Frame('Master Controls',  master_controls, expand_y=True ), sg.Frame('Sounds', dyn_layout )]
+    ] 
     
     layout.append([sg.Push(), sg.Button('Exit'), sg.Push()])
     
@@ -164,6 +171,7 @@ class DanAudio():
 
 
 def run_gui(layout, window, audio):
+    ret = False
     while True:
         event, values = window.read()
         if event == sg.WIN_CLOSED or event == 'Exit':
@@ -240,6 +248,21 @@ def run_gui(layout, window, audio):
             if 'Ones::' in event:
                 file = event[6:]
                 audio.Clear_loop(file)
+            if 'About' in event:
+                about_box()
+            if 'Restart' in event:
+                ret = True
+                break
+    window.close()
+    pygame.mixer.quit()
+    pygame.quit()
+    return ret
+
+def about_box():
+    version = 'v0.0.3'
+    sg.popup_ok(f"DanMix {version}", 
+                "Audio mixer for D&D games!", 
+                "by Epophis@gitub https://github.com/Efpophis")
 
 def toggle_button_color(item, rev=None):
     if rev == None:        
@@ -253,18 +276,20 @@ def toggle_button_color(item, rev=None):
     
     
 def main(argv):
-    folder = sg.popup_get_folder('Choose the folder containing your sounds')
-    if folder != None:
-        # not sure what all pygame supports, but it should at least work with these
-        extensions = [ "*.mp3", "*.wav", "*.flac", "*.m4a" ]
-        files = []
-        for ext in extensions:
-            files.extend(glob.glob(f'{folder}/{ext}'))
-        layout, window = build_layout(files)
-        audio = DanAudio(files)
-        run_gui(layout, window, audio)
-    else:
-        sg.popup(f'no folder chosen: {folder}')
+    running = True
+    while running == True:
+        folder = sg.popup_get_folder('Choose the folder containing your sounds')
+        if folder != None:
+            # not sure what all pygame supports, but it should at least work with these
+            extensions = [ "*.mp3", "*.wav", "*.flac" ]
+            files = []
+            for ext in extensions:
+                files.extend(glob.glob(f'{folder}/{ext}'))
+            layout, window = build_layout(files)
+            audio = DanAudio(files)
+            running = run_gui(layout, window, audio)
+        else:
+            sg.popup(f'no folder chosen: {folder}')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
