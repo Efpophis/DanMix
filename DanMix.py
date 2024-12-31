@@ -279,7 +279,7 @@ def main(argv):
     running = True
     while running == True:
         folder = sg.popup_get_folder('Choose the folder containing your sounds')
-        if folder != None:
+        if folder != None and folder != "":
             # not sure what all pygame supports, but it should at least work with these
             extensions = [ "*.mp3", "*.wav", "*.flac" ]
             files = []
@@ -289,7 +289,8 @@ def main(argv):
             audio = DanAudio(files)
             running = run_gui(layout, window, audio)
         else:
-            sg.popup(f'no folder chosen: {folder}')
+            #sg.popup(f'no folder chosen')
+            running = False
 
 if __name__ == '__main__':
     main(sys.argv[1:])
